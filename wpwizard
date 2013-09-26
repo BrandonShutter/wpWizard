@@ -91,7 +91,7 @@ fi
 # Build our theme from a framework? 
 if [ ! $3 ]; then
     echo "What theme framework would you like to use?"
-    read -p "Options: [bones, bootstrap, blueox, html5, required, roots, _s, startbox, starkers, skeleton, talon, thematic, prometheus, WOLF, custom, none]: " framework
+    read -p "Options: [wolf, bones, bootstrap, blueox, html5, required, roots, _s, startbox, starkers, skeleton, talon, thematic, prometheus, custom, none]: " framework
 fi
 
 # Create html directory
@@ -111,8 +111,9 @@ echo ''
 echo "Downloading WordPress for you."
 echo ''
 
-# set .gitignore to ignore wp-config.local so we can set different database variables for development vs production
-echo "wp-config.local.php" > .gitignore
+# set .gitignore to ignore wp-config.local and a ton of other stuff so we can set different database variables for development vs production
+
+echo $'wp-config.local.php \nsass-cache/ \n*.zip \nwp-content/advanced-cache.php \nwp-content/wp-cache-config.php \nwp-content/cache/* \nwp-content/backups/ \nwp-content/blogs.dir/ \nwp-content/upgrade/*' > .gitignore
 
 # download wordpress, extract and delete original tar
 if [ -z $USECURL ]; then
@@ -127,7 +128,7 @@ rm license.txt
 rm readme.html
 
 echo ''
-echo 'WordPress had been downloaded'
+echo 'WordPress had been downloaded.'
 echo ''
 
 # We succesfully added WordPress, so let's commit!
@@ -173,11 +174,13 @@ elif [ "$framework" == "talon" ]; then
 elif [ "$framework" == "prometheus" ]; then
     framework_repo="git@github.com:noeltock/prometheus.git" 
 elif [ "$framework" == "wolf" ]; then
-    framework_repo="git@github.com:snowdaygroup/wolf.git"
+    framework_repo="git@github.com:bradp/Wolf.git"
 elif [ "$framework" == "WOLF" ]; then
-    framework_repo="git@github.com:snowdaygroup/wolf.git"
+    framework_repo="git@github.com:bradp/Wolf.git"
 elif [ "$framework" == "w" ]; then
-    framework_repo="git@github.com:snowdaygroup/wolf.git"
+    framework_repo="git@github.com:bradp/Wolf.git"
+elif [ "$framework" == "Wolf" ]; then
+    framework_repo="git@github.com:bradp/Wolf.git"
 elif [ "$framework" == "custom" ]; then
   read -p "Location for custom theme: [can be git:// protocol or just a local git repository]: " framework_repo
 fi
@@ -197,7 +200,7 @@ if [ "$framework_repo" != "none" ]; then
     rm -rf wp-content/themes/$project/.git
 
     git add .
-    git commit --allow-empty -q -a -s -m "Installed theme framework"
+    git commit --allow-empty -q -a -s -m "Installed theme framework."
 
 
     # let's clear out some of the pre-packaged themes
@@ -226,7 +229,7 @@ rm -rf akismet
 rm hello.php
 
 git add .
-git commit --allow-empty -q -a -s -m "Removed Hello-Dolly and Hello.php plugins"
+git commit --allow-empty -q -a -s -m "Removed Hello-Dolly and akismet plugins"
 
 # Install plugins that are listed in the plugins.conf file
 # To add your/modify the plugins that are installed simply
@@ -286,6 +289,9 @@ git commit --allow-empty -q -m "All plugins installed"
 echo ''
 echo "Plugins installed, and I've done a commit."
 echo ''
+
+project=${project/-/_} 
+
 
 echo "<?php
 /**
@@ -349,7 +355,7 @@ else {
      * You can have multiple installations in one database if you give each a unique
      * prefix. Only numbers, letters, and underscores please!
      */
-    \$table_prefix  = 'wp_"$project"_'; 
+    \$table_prefix  = '"$project"_'; 
 
 }
 
@@ -414,11 +420,10 @@ define('DB_HOST', 'localhost');
 
 // Open your eyes!
 define('WP_DEBUG', true);
-
-// Save queries
+define('WP_DEBUG_LOG', true);
+define('WP_DEBUG_DISPLAY', true);
+define('SCRIPT_DEBUG', true);
 define('SAVEQUERIES', true);
-
-
 
 \$table_prefix  = 'wp_"$project"_'; 
 ?>" > wp-config.local.php
